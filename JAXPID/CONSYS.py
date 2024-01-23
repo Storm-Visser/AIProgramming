@@ -1,5 +1,9 @@
-import plants
-import Controllers
+from plants.BathtubPlant import BathtubPlant
+from plants.CournotPlant import CournotPlant
+from plants.OtherPlant import OtherPlant
+from controllers.Controller import Controller
+from controllers.NNController import NNController
+
 
 class CONSYS:
     def __init__(self, PlantNr, UseNN, NNLayers, ActivationF, InitialValuesRange, NumberOfEpochs, TimestepsPerEpoch, LearningRate, 
@@ -33,38 +37,39 @@ class CONSYS:
     def StartSim(self):
         # set Plant
         if (self.PlantNr == 1):
-            self.Plant = plants.BathtubPlant(self.TimestepsPerEpoch, self.NoiseRange, self.CrossSectionTub, self.CrossSectionDrain, self.HeightOfWater)
+            self.Plant = BathtubPlant(self.TimestepsPerEpoch, self.NoiseRange, self.CrossSectionTub, self.CrossSectionDrain, self.HeightOfWater)
         elif (self.PlantNr == 2):
-            self.Plant = plants.PricePlant(self.TimestepsPerEpoch, self.NoiseRange, self.MaxPrice, self.ProdCost)
+            self.Plant = CournotPlant(self.TimestepsPerEpoch, self.NoiseRange, self.MaxPrice, self.ProdCost)
         elif (self.PlantNr == 3):
-            self.Plant = plants.Otherplant(self.TimestepsPerEpoch, self.NoiseRange, self.var1, self.var2)
+            self.Plant = OtherPlant(self.TimestepsPerEpoch, self.NoiseRange, self.var1, self.var2)
 
         # set Controller
-        if self.useNN:
-            self.Controller = Controllers.NNController(self.LearningRate, self.NNLayers, self.ActivationF, self.InitialValuesRange)
+        if self.UseNN:
+            self.Controller = NNController(self.LearningRate, self.NNLayers, self.ActivationF, self.InitialValuesRange)
         else:
-            self.Controller = Controllers.PIDController(self.LearningRate)
+            self.Controller = Controller(self.LearningRate)
 
         self.RunSim()
 
     def RunSim(self):
-        ControllerInput = 0 #updates every timestep
+        ControllerInput = 0 #updates every timestep, start at 0
         for _ in range(self.NumberOfEpochs):
             # get results from epoch 
             PlantResults = self.Plant.Run(ControllerInput)
 
             #save results for visualisation
-            self.ErrorRate.append(PlantResults[1])
-            self.Results.append([PlantResults[2], PlantResults[3], ControllerInput])
+            self.ErrorRate.append(PlantResults)
+            
 
             # use results to calc new input
-            ControllerInput =  self.Controller.Analyze(PlantResults)
+            ControllerInput =  self.Controller.Analyse(self.Plant.Run, PlantResults)
 
         self.ShowResults()
     
-    def ShowGraphs(self):
-        print(self.ErrorRate)
-        print(self.Results)
+    def ShowResults(self):
+        print("Done")
+        # print(self.ErrorRate)
+        # print(self.Results)
         
 
         

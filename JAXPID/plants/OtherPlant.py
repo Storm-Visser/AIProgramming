@@ -1,4 +1,4 @@
-import Plant
+from plants.Plant import Plant
 
 class OtherPlant(Plant):
     def __init__(self, TimestepsPerEpoch, NoiseRange):

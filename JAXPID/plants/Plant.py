@@ -1,30 +1,25 @@
 from random import seed
-from random import randint
+from random import uniform
 
+# Abstract
 class Plant:
     def __init__(self, TimestepsPerEpoch, NoiseRange):
         self.TimestepsPerEpoch = TimestepsPerEpoch
         self.NoiseRange = NoiseRange
 
-    def Run(self):
-        Total = []
+    def Run(self, ControllerInput):
+        Total = 0
         # run x amount of times
         for _ in range(self.TimestepsPerEpoch):
-            NewValues = self.CalcNewValues()
-            #Save the results
-            for i in NewValues:
-                Total[i] = Total[i] + NewValues[i]
-
-        #Take the avg
-        Result = []
-        for i in Total:
-            Result.append(Total[i]/self.TimestepsPerEpoch)
-        return Result
+            Total = Total + self.CalcNewValues(ControllerInput)
+        #Take the avg and return
+        return Total/self.TimestepsPerEpoch
     
-    def CalcNewValues(self):
+    #abstract
+    def CalcNewValues(self, ControllerInput):
         return [0,0,0]
 
     def GenerateNoise(self):
         seed()
-        Noise = randint(self.NoiseRange[0], self.NoiseRange[1])
+        Noise = uniform(self.NoiseRange[0], self.NoiseRange[1])
         return Noise

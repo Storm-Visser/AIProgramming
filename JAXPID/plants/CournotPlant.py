@@ -1,4 +1,4 @@
-import Plant
+from plants.Plant import Plant
 
 class CournotPlant(Plant):
     def __init__(self, TimestepsPerEpoch, NoiseRange, MaxPrice, ProdCost):
