@@ -1,4 +1,4 @@
-from controllers.Controller import Controller
+from Controllers.Controller import Controller
 
 class NNController(Controller):
     def __init__(self, LearningRate, NNLayers, ActivationF, InitialValuesRange):

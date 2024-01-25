@@ -4,32 +4,28 @@ import jax.numpy as jnp
 
 class Controller:
 
-    InputValue = 0.0
+    InputValue = [0.0,0.0,0.0]
+    ErrorRateSum = 0.0
     ErrorRate = 0.0
-    K1 = 0
-    K2 = 0
-    K3 = 0
+    K1 = 0.0 # error rate
+    K2 = 0.0 # error rate prev/error rate
+    K3 = 0.0 # error rate sum
 
     def __init__(self, LearningRate):
         self.LearningRate = LearningRate
 
-    def Analyse(self, Plant, ErrorRate):
-        NewInputValue = 0.0
-        DF1 = jax.grad(lambda x: Plant(x)[0])
+    def Analyse(self, Plant):
+        #get the new input for the plant
+        NewInputValue = [0.0,0.0,0.0]
+        DF1 = jax.grad(lambda x,y,z: Plant(x,y,z)[0], argnums=0)
+        DF2 = jax.grad(lambda x,y,z: Plant(x,y,z)[0], argnums=1)
+        DF3 = jax.grad(lambda x,y,z: Plant(x,y,z)[0], argnums=2)
         #Update PID params
-        self.K1 = self.K1 + (-1 * self.LearningRate * DF1(self.InputValue))
-        #self.K2 = self.K2 + (-1 * self.LearningRate * self.CalcJaxDerivative(self.CalcErrorRateOverTime(ErrorRate), self.K2))
-        #self.K3 = self.K3 + (-1 * self.LearningRate * self.CalcJaxDerivative(self.CalcErrorRateDerivitive(ErrorRate), self.K3))
-        #update their values
-        NewInputValue =  (self.K1 * ErrorRate)# + (self.K2 * self.CalcErrorRateOverTime(ErrorRate)) + (self.K3 * self.CalcErrorRateDerivitive(ErrorRate))
+        self.K1 = self.K1 + (-1 * self.LearningRate * DF1(self.InputValue[0], self.InputValue[1], self.InputValue[2]))
+        self.K2 = self.K2 + (-1 * self.LearningRate * DF2(self.InputValue[0], self.InputValue[1], self.InputValue[2]))
+        self.K3 = self.K3 + (-1 * self.LearningRate * DF3(self.InputValue[0], self.InputValue[1], self.InputValue[2]))
+        #pass the new values
+        NewInputValues =  [self.K1, self.K2, self.K3]
         self.InputValue = NewInputValue
-        return NewInputValue, self.K1, self.K2, self.K3
-
-    #ToDo
-
-    def CalcErrorRateOverTime(self, ErrorRate):
-        return 0
-
-    def CalcErrorRateDerivitive(self, ErrorRate):
-        return 0
+        return NewInputValues
 

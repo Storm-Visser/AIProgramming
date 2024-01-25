@@ -1,8 +1,8 @@
 from plants.BathtubPlant import BathtubPlant
 from plants.CournotPlant import CournotPlant
 from plants.OtherPlant import OtherPlant
-from controllers.Controller import Controller
-from controllers.NNController import NNController
+from Controllers.Controller import Controller
+from Controllers.NNController import NNController
 import matplotlib.pyplot as plt
 
 
@@ -31,7 +31,9 @@ class CONSYS:
         self.var2 = var2      
         #Results
         self.ErrorRate = []
-        self.Results = [] #2dArray array with timestepNr[param1,param2,param3(,param4)]
+        self.K1 = []
+        self.K2 = []
+        self.K3 = []
 
         self.StartSim()
 
@@ -53,19 +55,26 @@ class CONSYS:
         self.RunSim()
 
     def RunSim(self):
-        ControllerInput = 0 #updates every timestep, start at 0
+        ControllerInput = [0,0,0] #updates every timestep, start at 0
         for _ in range(self.NumberOfEpochs):
             PlantEr = 0
             PlantUpd = 0
+            PlantErTot = 0
             for _ in range(self.TimestepsPerEpoch):
                 # get results from epoch 
-                PlantEr, PlantUpd = self.Plant.Run(ControllerInput)
-                self.Plant.Update(PlantUpd)                
+                PlantEr, PlantUpd = self.Plant.Run(ControllerInput[0], ControllerInput[1], ControllerInput[2])
+                PlantErTot = PlantErTot + (PlantEr**2)
+                #update the plant values
+                self.Plant.Update(PlantEr, PlantUpd)                
                 # use results to calc new input
-                ControllerInput, K1, K2, K3 = self.Controller.Analyse(self.Plant.Run, PlantEr)
+                ControllerInput = self.Controller.Analyse(self.Plant.Run)
+                self.K1.append(ControllerInput[0])
+                self.K2.append(ControllerInput[1])
+                self.K3.append(ControllerInput[2])
+            #reset
+            self.Plant.Reset()
             #save results
-            self.ErrorRate.append((PlantEr)**2)
-            self.Results.append(PlantUpd)
+            self.ErrorRate.append(PlantErTot/self.TimestepsPerEpoch)
 
         self.ShowResults()
     
@@ -85,8 +94,10 @@ class CONSYS:
         ax1.legend()
         ax1.grid(True)
 
-        # Plot results
-        ax2.plot(time_steps, self.Results, label='Result')
+        #Plot results
+        ax2.plot(time_steps, self.K1, label='K1')
+        ax2.plot(time_steps, self.K2, label='K2')
+        ax2.plot(time_steps, self.K3, label='K3')
         ax2.set_title('Results Over Time')
         ax2.set_xlabel('Epochs')
         ax2.set_ylabel('Results')

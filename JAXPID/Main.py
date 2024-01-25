@@ -5,9 +5,9 @@ sytem = CONSYS.CONSYS( PlantNr = 1, #1 for Bathtubs, 2 for price, 3 for other
         NNLayers = 0, # 0 to 5
         ActivationF = 1, #1 for sigmoid, 2 for tanh, 3 for relu
         InitialValuesRange = [0,1],
-        NumberOfEpochs = 1000,
+        NumberOfEpochs = 10,
         TimestepsPerEpoch = 10,
-        LearningRate = 1,
+        LearningRate = 0.1,
         NoiseRange = [-0.1,0.1],
         #Bathtub
         CrossSectionTub = 10,

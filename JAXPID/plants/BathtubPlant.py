@@ -34,6 +34,10 @@ class BathtubPlant(Plant):
         ErrorRate = abs(((NewHeightOfWater - self.TargetHeight) / self.TargetHeight))
         return ErrorRate, NewHeightOfWater
 
-    def Update(self, UpdateValue):
-        self.HeightOfWater = UpdateValue
+    def Update(self, UpdateErrorRate, UpdateWaterHeigt):
+        self.HeightOfWater = UpdateWaterHeigt
+        super().UpdateErrorVars(UpdateErrorRate)
         return
+    
+    def Reset(self):
+        self.HeightOfWater = self.TargetHeight
