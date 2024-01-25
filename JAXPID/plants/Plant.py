@@ -8,18 +8,17 @@ class Plant:
         self.NoiseRange = NoiseRange
 
     def Run(self, ControllerInput):
-        Total = 0
-        # run x amount of times
-        for _ in range(self.TimestepsPerEpoch):
-            Total = Total + self.CalcNewValues(ControllerInput)
-        #Take the avg and return
-        return Total/self.TimestepsPerEpoch
+        ER, RS = self.CalcNewValues(ControllerInput)
+        return ER, RS
     
-    #abstract
-    def CalcNewValues(self, ControllerInput):
-        return [0,0,0]
-
     def GenerateNoise(self):
         seed()
         Noise = uniform(self.NoiseRange[0], self.NoiseRange[1])
         return Noise
+
+    #abstract methods
+    def CalcNewValues(self, ControllerInput):
+        return 0
+
+    def Update():
+        return 0 

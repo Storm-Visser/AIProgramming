@@ -1,4 +1,6 @@
 from plants.Plant import Plant
+import jax
+import jax.numpy as jnp
 import numpy as np
 
 class BathtubPlant(Plant):
@@ -17,18 +19,21 @@ class BathtubPlant(Plant):
 
     # Take all methods from super
     # Override only this method, as this is the one that changes per plant
-    # Returns Error rate (%), Target height, Actual height, Noise
+    # Returns Error rate
     def CalcNewValues(self, ControllerInput):
-        # Remove
-        VWater = np.sqrt(2 * self.g * self.HeightOfWater)
+        # Removed
+        VWater = jnp.sqrt(2 * self.g * self.HeightOfWater)
         FlowRate = VWater * self.CrossSectionDrain
-        # Add
-        NewVolume = super().GenerateNoise() + ControllerInput - FlowRate
+        # Added
+        Faucet = super().GenerateNoise() + ControllerInput
+        # Result
+        NewVolume = Faucet - FlowRate
         # Account for tub area
-        self.HeightOfWater = self.HeightOfWater + NewVolume/self.CrossSectionTub
+        NewHeightOfWater = self.HeightOfWater + NewVolume/self.CrossSectionTub
         # Feedback
-        ErrorRate = ((self.HeightOfWater/self.TargetHeight) * 100) - 100
-        print("Er: " + str(ErrorRate) + "%")
-        print("WH: " + str(self.HeightOfWater))
-        print()
-        return ErrorRate
+        ErrorRate = abs(((NewHeightOfWater - self.TargetHeight) / self.TargetHeight))
+        return ErrorRate, NewHeightOfWater
+
+    def Update(self, UpdateValue):
+        self.HeightOfWater = UpdateValue
+        return
