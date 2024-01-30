@@ -1,18 +1,19 @@
 from plants.BathtubPlant import BathtubPlant
 from plants.CournotPlant import CournotPlant
 from plants.OtherPlant import OtherPlant
-from Controllers.Controller import Controller
-from Controllers.NNController import NNController
+from controllers.Controller import Controller
+from controllers.NNController import NNController
 import matplotlib.pyplot as plt
 
 
 class CONSYS:
-    def __init__(self, PlantNr, UseNN, NNLayers, ActivationF, InitialValuesRange, NumberOfEpochs, TimestepsPerEpoch, LearningRate, 
+    def __init__(self, PlantNr, UseNN, NNLayers, NodesPerLayer, ActivationF, InitialValuesRange, NumberOfEpochs, TimestepsPerEpoch, LearningRate, 
                  NoiseRange, CrossSectionTub, CrossSectionDrain, HeightOfWater, MaxPrice, ProdCost,  var1, var2):
         #General
         self.PlantNr = PlantNr
         self.UseNN = UseNN
         self.NNLayers = NNLayers
+        self.NodesPerLayer = NodesPerLayer
         self.ActivationF = ActivationF
         self.InitialValuesRange = InitialValuesRange
         self.NumberOfEpochs = NumberOfEpochs
@@ -31,9 +32,7 @@ class CONSYS:
         self.var2 = var2      
         #Results
         self.ErrorRate = []
-        self.K1 = []
-        self.K2 = []
-        self.K3 = []
+        self.KValues = []
 
         self.StartSim()
 
@@ -48,7 +47,7 @@ class CONSYS:
 
         # set Controller
         if self.UseNN:
-            self.Controller = NNController(self.LearningRate, self.NNLayers, self.ActivationF, self.InitialValuesRange)
+            self.Controller = NNController(self.LearningRate, self.NNLayers, self.NodesPerLayer, self.ActivationF, self.InitialValuesRange)
         else:
             self.Controller = Controller(self.LearningRate)
 
@@ -60,6 +59,7 @@ class CONSYS:
             PlantEr = 0
             PlantUpd = 0
             PlantErTot = 0
+            NewKValues = [0,0,0]
             for _ in range(self.TimestepsPerEpoch):
                 # get results from epoch 
                 PlantEr, PlantUpd = self.Plant.Run(ControllerInput[0], ControllerInput[1], ControllerInput[2])
@@ -68,19 +68,18 @@ class CONSYS:
                 self.Plant.Update(PlantEr, PlantUpd)                
                 # use results to calc new input
                 ControllerInput = self.Controller.Analyse(self.Plant.Run)
-                self.K1.append(ControllerInput[0])
-                self.K2.append(ControllerInput[1])
-                self.K3.append(ControllerInput[2])
+                NewKValues = ControllerInput
+            
             #reset
             self.Plant.Reset()
             #save results
             self.ErrorRate.append(PlantErTot/self.TimestepsPerEpoch)
+            self.KValues.append(NewKValues)
 
         self.ShowResults()
     
     def ShowResults(self):
         print("Done")
-
         time_steps = range(len(self.ErrorRate))
 
         # Create subplots
@@ -94,17 +93,22 @@ class CONSYS:
         ax1.legend()
         ax1.grid(True)
 
-        #Plot results
-        ax2.plot(time_steps, self.K1, label='K1')
-        ax2.plot(time_steps, self.K2, label='K2')
-        ax2.plot(time_steps, self.K3, label='K3')
-        ax2.set_title('Results Over Time')
-        ax2.set_xlabel('Epochs')
-        ax2.set_ylabel('Results')
-        ax2.legend()
-        ax2.grid(True)
+        # Create a single graph for all points
+        # Extract the values for each column (Array 1, Array 2, Array 3)
+        array1_values = [sublist[0] for sublist in self.KValues]
+        array2_values = [sublist[1] for sublist in self.KValues]
+        array3_values = [sublist[2] for sublist in self.KValues]
 
-        plt.tight_layout()  # Adjusts spacing between subplots
+        ax2.plot(time_steps, array1_values, label='K1')
+        ax2.plot(time_steps, array2_values, label='K2')
+        ax2.plot(time_steps, array3_values, label='K3')
+
+        ax2.set_title('K Values')
+        ax2.set_xlabel('Index')
+        ax2.set_ylabel('Values')
+        ax2.legend()
+
+        plt.tight_layout()
         plt.show()
 
         
