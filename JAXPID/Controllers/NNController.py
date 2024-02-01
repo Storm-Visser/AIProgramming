@@ -1,9 +1,10 @@
 from controllers.Controller import Controller
-from controllers.Node import Node
+from controllers.Node import Node as n
 import numpy as np
 import jax
 import jax.numpy as jnp
 from jax import grad, jit, value_and_grad, vmap
+from random import uniform
 
 class NNController(Controller):
     def __init__(self, LearningRate, NNLayers, NodesPerLayer, ActivationF, InitialValuesRange):
@@ -22,13 +23,13 @@ class NNController(Controller):
 
         
 
-    def Analyse(self, ErrorRate):
+    def Analyse(self, PlantRun):
         # set new input nodes from Errorrate
         # Do a forward pass and get the value for the plant
-        FwPassOutput = self.Forward(self.InputValue)
+        FwPassOutput = self.Forward(self.InputValue, self.GetParams())
 
         # Do a backward pass and get the gradient values
-        _, Gradients = self.Backward(self.InputValue, ErrorRate)
+        _, Gradients = self.Backward(self.InputValue, PlantRun)
 
         # Update the weights using the gradients 
         self.UpdateWeights(Gradients, self.LearningRate)
@@ -39,33 +40,33 @@ class NNController(Controller):
     def SetupNN(self):
         # setup the starting nodes
         for _ in range(3):
-            NewNode = Node()
+            NewNode = n()
             NewNode.AddOutput(1)
             self.InputNodes.append(NewNode)
 
-        self.OutputNode = Node()
+        self.OutputNode = n()
 
         # setup the layers and the nodes
         for _ in range(self.NNLayers):
-                Layer = [Node() for _ in range(self.NNLayers)]
+                Layer = [n() for _ in range(self.NNLayers)]
                 self.HiddenLayers.append(Layer)
 
         # Connect input nodes to the first hidden layer
         for i, Node in enumerate(self.InputNodes):
             for HiddenNode in self.HiddenLayers[0]:
-                Weight = np.random.randn()
+                Weight = uniform(self.InitialValuesRange[0], self.InitialValuesRange[1])
                 HiddenNode.AddInput(Node, Weight)
 
         # Connect hidden layers
         for i in range(len(self.HiddenLayers) - 1):
             for Node1 in self.HiddenLayers[i]:
                 for Node2 in self.HiddenLayers[i + 1]:
-                    weight = np.random.randn()
+                    weight = uniform(self.InitialValuesRange[0], self.InitialValuesRange[1])
                     Node2.AddInput(Node1, weight)
 
         # Connect last hidden layer to the output node
         for Node in self.HiddenLayers[-1]:
-            Weight = np.random.randn()
+            Weight = uniform(self.InitialValuesRange[0], self.InitialValuesRange[1])
             self.OutputNode.AddInput(Node, Weight)
 
         # Initialize weights and biases as JAX arrays with the same structure as gradients
@@ -76,24 +77,25 @@ class NNController(Controller):
         self.InputValue = [ErrorRate, PrevErrorRate, ErrorRateSum]
         
 
-    def Forward(self, InputData):
+    def Forward(self, InputData, Params):
         for i, Node in enumerate(self.InputNodes):
-            Node.output = InputData[i]
-
+            Node.Output = InputData[i]
+        i = 0
         for HiddenLayer, Bias in zip(self.HiddenLayers, self.Biases):
             for Node, NodeBias in zip(HiddenLayer, Bias):
-                Node.bias = NodeBias
-                Node.CalcOutput()
+                Node.Bias = NodeBias
+                Node.CalcOutput(Params[i])
+            i += 1
 
-        self.OutputNode.CalcOutput()
-        return self.OutputNode.output
+        self.OutputNode.CalcOutput(Params[-1])
+        return self.OutputNode.Output
 
-    def Backward(self, InputData, Target):
+    def Backward(self, InputData, PlantRun):
         def LossFn(Params):
             # forward pass
-            Output = self.Forward(InputData)
+            Output = self.Forward(InputData, Params)
             # get the loss
-            Loss = self.Loss(Target, Output)
+            Loss, _ = PlantRun(Output)
             return Loss
         # calculate the gradients with jax
         Grads = jax.grad(LossFn)(self.GetParams())
@@ -112,8 +114,9 @@ class NNController(Controller):
                 self.Weights[i][j] -= LearningRate * Gradients[i][j]
 
         # Update the weights of the OutputNode
-        print(Gradients[-1][1])
-        self.OutputNode.Weights -= LearningRate * Gradients[-1]
+        for i in range(len(Gradients[-1])):
+            self.OutputNode.Weights[i]-= LearningRate * Gradients[-1][i]
+        
 
 
         

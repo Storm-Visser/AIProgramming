@@ -93,7 +93,7 @@ class CONSYS:
                 # update the nn startingnode values 
                 self.Controller.updateInputData(self.Plant.ErrorRate, self.Plant.PrevErrorRate, self.Plant.ErrorRateSum)     
                 # use results to calc new input
-                ControllerInput = self.Controller.Analyse(PlantEr)
+                ControllerInput = self.Controller.Analyse(self.Plant.RunNN)
                 # save the final Kvalue of the epoch
                 NewKValue = ControllerInput
             
@@ -119,21 +119,29 @@ class CONSYS:
         ax1.set_ylabel('Error Rate')
         ax1.legend()
         ax1.grid(True)
+        ax1.set_yscale('log')
 
-        # Create a single graph for all points
-        # Extract the values for each column (Array 1, Array 2, Array 3)
-        array1_values = [sublist[0] for sublist in self.KValues]
-        array2_values = [sublist[1] for sublist in self.KValues]
-        array3_values = [sublist[2] for sublist in self.KValues]
+        if(self.UseNN):
+            ax2.plot(time_steps, self.KValues, label='output')
+            ax2.set_title('NN output values')
+            ax2.set_xlabel('Index')
+            ax2.set_ylabel('Values')
+            ax2.legend()
+        else:
+            # Create a single graph for all points
+            # Extract the values for each column (Array 1, Array 2, Array 3)
+            array1_values = [sublist[0] for sublist in self.KValues]
+            array2_values = [sublist[1] for sublist in self.KValues]
+            array3_values = [sublist[2] for sublist in self.KValues]
 
-        ax2.plot(time_steps, array1_values, label='K1')
-        ax2.plot(time_steps, array2_values, label='K2')
-        ax2.plot(time_steps, array3_values, label='K3')
+            ax2.plot(time_steps, array1_values, label='K1')
+            ax2.plot(time_steps, array2_values, label='K2')
+            ax2.plot(time_steps, array3_values, label='K3')
 
-        ax2.set_title('K Values')
-        ax2.set_xlabel('Index')
-        ax2.set_ylabel('Values')
-        ax2.legend()
+            ax2.set_title('K Values')
+            ax2.set_xlabel('Index')
+            ax2.set_ylabel('Values')
+            ax2.legend()
 
         plt.tight_layout()
         plt.show()

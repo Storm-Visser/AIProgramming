@@ -31,7 +31,7 @@ class BathtubPlant(Plant):
         # Account for tub area
         NewHeightOfWater = self.HeightOfWater + NewVolume/self.CrossSectionTub
         # Feedback
-        ErrorRate = abs(((NewHeightOfWater - self.TargetHeight) / self.TargetHeight))
+        ErrorRate = abs(((NewHeightOfWater - self.TargetHeight) / self.TargetHeight)) #probably wrong
         return ErrorRate, NewHeightOfWater
 
     def Update(self, UpdateErrorRate, UpdateWaterHeigt):
