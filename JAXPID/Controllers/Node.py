@@ -2,23 +2,23 @@ import numpy as np
 
 class Node:
     def __init__(self):
-        self.inputs = []
-        self.weights = []
-        self.bias = np.random.randn()
-        self.output = None
+        self.Inputs = []
+        self.Weights = []
+        self.Bias = np.random.randn()
+        self.Output = None
 
-    def AddOutput(self, output):
-        self.output = output
+    def AddOutput(self, Output):
+        self.Output = Output
 
-    def AddInput(self, node, weight):
-        self.inputs.append(node)
-        self.weights.append(weight)
+    def AddInput(self, Node, Weight):
+        self.Inputs.append(Node)
+        self.Weights.append(Weight)
 
     def CalcOutput(self):
-        weighted_sum = 0
-        for i in range(len(self.inputs)):
-            weighted_sum += self.inputs[i].output * self.weights[i]
-        self.output = self.ActivationFunction(weighted_sum)
+        WeightedSum = 0
+        for i in range(len(self.Inputs)):
+            WeightedSum += self.Inputs[i].Output * self.Weights[i]
+        self.Output = self.ActivationFunction(WeightedSum)
 
     def ActivationFunction(self, x):
         return 1 / (1 + np.exp(-x))

@@ -8,7 +8,7 @@ sytem = CONSYS.CONSYS( PlantNr = 1, #1 for Bathtubs, 2 for price, 3 for other
         InitialValuesRange = [0,1],
         NumberOfEpochs = 10,
         TimestepsPerEpoch = 10,
-        LearningRate = 0.1,
+        LearningRate = 0.01,
         NoiseRange = [-0.5,0.5],
         #Bathtub
         CrossSectionTub = 10,

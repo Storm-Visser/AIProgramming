@@ -10,27 +10,28 @@ class NNController(Controller):
         super().__init__(LearningRate)
         self.NNLayers = NNLayers
         self.NodesPerLayer = NodesPerLayer
-        self.ActivationF = ActivationF #add this to the nodes
+        self.ActivationF = ActivationF #todo add this to the nodes
         self.InitialValuesRange = InitialValuesRange
-        #NN stuff
+
         self.HiddenLayers = []
         self.InputNodes = []
         self.OutputNode = None
-
+        self.Weights = None
+        self.Biases = None
         self.SetupNN()
+
         
 
     def Analyse(self, ErrorRate):
         # set new input nodes from Errorrate
         # Do a forward pass and get the value for the plant
-        FwPassOutput = self.forward(self.InputValue)
+        FwPassOutput = self.Forward(self.InputValue)
 
         # Do a backward pass and get the gradient values
-        gradients = self.backward(self.InputValue, ErrorRate)
+        _, Gradients = self.Backward(self.InputValue, ErrorRate)
 
         # Update the weights using the gradients 
-        print(gradients)
-        self.update_weights(gradients, self.LearningRate)
+        self.UpdateWeights(Gradients, self.LearningRate)
 
         # Return the new input for the next timestep of the plant
         return FwPassOutput
@@ -46,81 +47,73 @@ class NNController(Controller):
 
         # setup the layers and the nodes
         for _ in range(self.NNLayers):
-                layer = [Node() for _ in range(self.NNLayers)]
-                self.HiddenLayers.append(layer)
+                Layer = [Node() for _ in range(self.NNLayers)]
+                self.HiddenLayers.append(Layer)
 
         # Connect input nodes to the first hidden layer
-        for i, node in enumerate(self.InputNodes):
+        for i, Node in enumerate(self.InputNodes):
             for HiddenNode in self.HiddenLayers[0]:
-                weight = np.random.randn()
-                HiddenNode.AddInput(node, weight)
+                Weight = np.random.randn()
+                HiddenNode.AddInput(Node, Weight)
 
         # Connect hidden layers
         for i in range(len(self.HiddenLayers) - 1):
-            for node1 in self.HiddenLayers[i]:
-                for node2 in self.HiddenLayers[i + 1]:
+            for Node1 in self.HiddenLayers[i]:
+                for Node2 in self.HiddenLayers[i + 1]:
                     weight = np.random.randn()
-                    node2.AddInput(node1, weight)
+                    Node2.AddInput(Node1, weight)
 
         # Connect last hidden layer to the output node
-        for node in self.HiddenLayers[-1]:
-            weight = np.random.randn()
-            self.OutputNode.AddInput(node, weight)
+        for Node in self.HiddenLayers[-1]:
+            Weight = np.random.randn()
+            self.OutputNode.AddInput(Node, Weight)
 
-        # Initialize weights and biases as JAX arrays
-        self.weights = [jnp.array(node.weights) for layer in self.HiddenLayers for node in layer] + [jnp.array(self.OutputNode.weights)]
-        self.biases = [jnp.array([node.bias for node in layer]) for layer in self.HiddenLayers] + [jnp.array([self.OutputNode.bias])]
+        # Initialize weights and biases as JAX arrays with the same structure as gradients
+        self.Weights = [[jnp.array(Node.Weights) for Node in Layer] for Layer in self.HiddenLayers] + [jnp.array(self.OutputNode.Weights)]
+        self.Biases = [[jnp.array(Node.Bias) for Node in Layer] for Layer in self.HiddenLayers] + [jnp.array([self.OutputNode.Bias])]
 
-    def updateInputData(self, errorRate, PrevErrorRate, ErrorRateSum):
-        self.InputValue = [errorRate, PrevErrorRate, ErrorRateSum]
+    def updateInputData(self, ErrorRate, PrevErrorRate, ErrorRateSum):
+        self.InputValue = [ErrorRate, PrevErrorRate, ErrorRateSum]
         
 
-    def forward(self, input_data):
-        for i, node in enumerate(self.InputNodes):
-            node.output = input_data[i]
+    def Forward(self, InputData):
+        for i, Node in enumerate(self.InputNodes):
+            Node.output = InputData[i]
 
-        for HiddenLayer, bias in zip(self.HiddenLayers, self.biases):
-            for node, nodeBias in zip(HiddenLayer, bias):
-                node.bias = nodeBias
-                node.CalcOutput()
+        for HiddenLayer, Bias in zip(self.HiddenLayers, self.Biases):
+            for Node, NodeBias in zip(HiddenLayer, Bias):
+                Node.bias = NodeBias
+                Node.CalcOutput()
 
         self.OutputNode.CalcOutput()
         return self.OutputNode.output
 
-    def backward(self, inputData, target):
-        def loss_fn(params):
-            # Forward pass through the network
-            output = self.forward(inputData)
-            # Calculate the loss
-            loss = self.loss(target, output)
-            return loss
+    def Backward(self, InputData, Target):
+        def LossFn(Params):
+            # forward pass
+            Output = self.Forward(InputData)
+            # get the loss
+            Loss = self.Loss(Target, Output)
+            return Loss
+        # calculate the gradients with jax
+        Grads = jax.grad(LossFn)(self.GetParams())
+        return LossFn(self.GetParams()), Grads
 
-        # Compute the gradient of the loss with respect to the neural network parameters
-        grads = jax.grad(loss_fn)(self.get_params())
+    def Loss(self, Target, Output):
+        return jnp.mean((Output - Target) ** 2)
 
-        return loss_fn(self.get_params()), grads
+    def GetParams(self):
+        return [Node.Weights for Layer in self.HiddenLayers for Node in Layer] + [self.OutputNode.Weights]
 
-    def loss(self, target, output):
-        return jnp.mean((output - target) ** 2)
-
-    def get_params(self):
-        return [node.weights for layer in self.HiddenLayers for node in layer] + [self.OutputNode.weights]
-
-    def update_weights(self, gradients, learning_rate):
-        # Iterate over the layers
-        for i, (layer_gradients, layer_weights) in enumerate(zip(gradients, self.weights)):
-            # Iterate over nodes within the layer
-            for j, (node_gradients, node_weights) in enumerate(zip(layer_gradients, layer_weights)):
-                # Update node weights using gradients
-                node_weights -= learning_rate * node_gradients
-                # Assign the updated weights back to the network weights
-                self.weights[i][j] = node_weights
+    def UpdateWeights(self, Gradients, LearningRate):
+        # Iterate over the layers and nodes to update weights using gradients
+        for i in range(len(self.HiddenLayers)):
+            for j in range(len(self.HiddenLayers[i])):
+                self.Weights[i][j] -= LearningRate * Gradients[i][j]
 
         # Update the weights of the OutputNode
-        self.OutputNode.weights -= learning_rate * gradients[-1]
-
-        # Reshape the updated weights of the OutputNode
-        self.OutputNode.weights = self.OutputNode.weights.reshape(self.OutputNode.weights.shape)
+        print(Gradients[-1][1])
+        self.OutputNode.Weights -= LearningRate * Gradients[-1]
 
 
         
