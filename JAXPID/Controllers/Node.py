@@ -7,7 +7,7 @@ class Node:
         self.bias = np.random.randn()
         self.output = None
 
-    def SetOutput(self, output):
+    def AddOutput(self, output):
         self.output = output
 
     def AddInput(self, node, weight):
@@ -18,7 +18,7 @@ class Node:
         weighted_sum = 0
         for i in range(len(self.inputs)):
             weighted_sum += self.inputs[i].output * self.weights[i]
-        self.output = self.activation_function(weighted_sum)
+        self.output = self.ActivationFunction(weighted_sum)
 
-    def activation_function(self, x):
+    def ActivationFunction(self, x):
         return 1 / (1 + np.exp(-x))

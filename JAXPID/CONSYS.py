@@ -48,26 +48,26 @@ class CONSYS:
         # set Controller
         if self.UseNN:
             self.Controller = NNController(self.LearningRate, self.NNLayers, self.NodesPerLayer, self.ActivationF, self.InitialValuesRange)
+            self.RunNNSim()
         else:
             self.Controller = Controller(self.LearningRate)
-
-        self.RunSim()
+            self.RunSim()
 
     def RunSim(self):
         ControllerInput = [0,0,0] #updates every timestep, start at 0
         for _ in range(self.NumberOfEpochs):
-            PlantEr = 0
-            PlantUpd = 0
             PlantErTot = 0
             NewKValues = [0,0,0]
             for _ in range(self.TimestepsPerEpoch):
                 # get results from epoch 
                 PlantEr, PlantUpd = self.Plant.Run(ControllerInput[0], ControllerInput[1], ControllerInput[2])
+                # MSE
                 PlantErTot = PlantErTot + (PlantEr**2)
                 #update the plant values
                 self.Plant.Update(PlantEr, PlantUpd)                
                 # use results to calc new input
                 ControllerInput = self.Controller.Analyse(self.Plant.Run)
+                # save the final Kvalues of the epoch
                 NewKValues = ControllerInput
             
             #reset
@@ -75,6 +75,33 @@ class CONSYS:
             #save results
             self.ErrorRate.append(PlantErTot/self.TimestepsPerEpoch)
             self.KValues.append(NewKValues)
+
+        self.ShowResults()
+
+    def RunNNSim(self):
+        ControllerInput = 0 # updates every timestep, start at 0
+        for _ in range(self.NumberOfEpochs):
+            PlantErTot = 0
+            NewKValue = 0
+            for _ in range(self.TimestepsPerEpoch):
+                # get results from epoch 
+                PlantEr, PlantUpd = self.Plant.RunNN(ControllerInput)
+                # gather MSE data
+                PlantErTot = PlantErTot + (PlantEr**2)
+                # update the plant values
+                self.Plant.Update(PlantEr, PlantUpd)
+                # update the nn startingnode values 
+                self.Controller.updateInputData(self.Plant.ErrorRate, self.Plant.PrevErrorRate, self.Plant.ErrorRateSum)     
+                # use results to calc new input
+                ControllerInput = self.Controller.Analyse(PlantEr)
+                # save the final Kvalue of the epoch
+                NewKValue = ControllerInput
+            
+            #reset
+            self.Plant.Reset()
+            #save results
+            self.ErrorRate.append(PlantErTot/self.TimestepsPerEpoch)
+            self.KValues.append(NewKValue)
 
         self.ShowResults()
     

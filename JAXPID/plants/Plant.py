@@ -4,22 +4,24 @@ from random import uniform
 # Abstract
 class Plant:
 
-    ErrorRateSum = 0.0
-    PrevErrorRate = 0.0
-    ErrorRate = 0.0
-
     def __init__(self, TimestepsPerEpoch, NoiseRange):
         self.TimestepsPerEpoch = TimestepsPerEpoch
         self.NoiseRange = NoiseRange
+        self.ErrorRateSum = 0.0
+        self.PrevErrorRate = 0.0
+        self.ErrorRate = 0.0
 
 
     def Run(self, K1, K2, K3):
         ControllerInput = (K1 * self.ErrorRate) + (K2 * (self.PrevErrorRate - self.ErrorRate)) + (K3 * self.ErrorRateSum)
         ER, RS = self.CalcNewValues(ControllerInput)
         return ER, RS
+
+    def RunNN(self, Output):
+        ER, RS = self.CalcNewValues(Output)
+        return ER, RS
     
     def GenerateNoise(self):
-        
         Noise = uniform(self.NoiseRange[0], self.NoiseRange[1])
         return Noise
 
