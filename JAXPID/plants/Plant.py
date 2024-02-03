@@ -13,7 +13,7 @@ class Plant:
 
 
     def Run(self, K1, K2, K3):
-        ControllerInput = (K1 * self.ErrorRate) + (K2 * (self.PrevErrorRate - self.ErrorRate)) + (K3 * self.ErrorRateSum)
+        ControllerInput = (K1 * self.ErrorRate) + (K2 * (self.ErrorRate - self.PrevErrorRate)) + (K3 * self.ErrorRateSum)
         ER, RS = self.CalcNewValues(ControllerInput)
         return ER, RS
 

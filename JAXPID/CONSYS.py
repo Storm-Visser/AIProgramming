@@ -57,12 +57,13 @@ class CONSYS:
         ControllerInput = [0,0,0] #updates every timestep, start at 0
         for _ in range(self.NumberOfEpochs):
             PlantErTot = 0
-            NewKValues = [0,0,0]
+            NewKValues = [0,0,0,0]
             for _ in range(self.TimestepsPerEpoch):
                 # get results from epoch 
                 PlantEr, PlantUpd = self.Plant.Run(ControllerInput[0], ControllerInput[1], ControllerInput[2])
                 # MSE
                 PlantErTot = PlantErTot + (PlantEr**2)
+                # PlantErTot = PlantErTot + PlantEr
                 #update the plant values
                 self.Plant.Update(PlantEr, PlantUpd)                
                 # use results to calc new input
@@ -95,7 +96,7 @@ class CONSYS:
                 # use results to calc new input
                 ControllerInput = self.Controller.Analyse(self.Plant.RunNN)
                 # save the final Kvalue of the epoch
-                NewKValue = ControllerInput
+                NewKValue = self.Plant.HeightOfWater
             
             #reset
             self.Plant.Reset()
@@ -133,6 +134,8 @@ class CONSYS:
             array1_values = [sublist[0] for sublist in self.KValues]
             array2_values = [sublist[1] for sublist in self.KValues]
             array3_values = [sublist[2] for sublist in self.KValues]
+
+            # Kvalue decreasing makes sense due to the water decresing accoridng to the amount of water, if it is more wrong, the k value should be higher
 
             ax2.plot(time_steps, array1_values, label='K1')
             ax2.plot(time_steps, array2_values, label='K2')

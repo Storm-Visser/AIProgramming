@@ -6,7 +6,6 @@ import numpy as np
 class BathtubPlant(Plant):
 
     g = 9.81
-    TargetHeight = 0
 
     def __init__(self, TimestepsPerEpoch, NoiseRange, CrossSectionTub, CrossSectionDrain, HeightOfWater):
         # Take general params from super
@@ -30,8 +29,8 @@ class BathtubPlant(Plant):
         NewVolume = Faucet - FlowRate
         # Account for tub area
         NewHeightOfWater = self.HeightOfWater + NewVolume/self.CrossSectionTub
-        # Feedback
-        ErrorRate = abs(((NewHeightOfWater - self.TargetHeight) / self.TargetHeight)) #probably wrong
+        # Get the heigth offset and calculate how much percentage of the targetheight it is, abs to force positive nombers(minimize error)
+        ErrorRate = abs(((NewHeightOfWater - self.TargetHeight) / self.TargetHeight))
         return ErrorRate, NewHeightOfWater
 
     def Update(self, UpdateErrorRate, UpdateWaterHeigt):

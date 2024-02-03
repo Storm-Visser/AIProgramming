@@ -84,10 +84,10 @@ class NNController(Controller):
         for HiddenLayer, Bias in zip(self.HiddenLayers, self.Biases):
             for Node, NodeBias in zip(HiddenLayer, Bias):
                 Node.Bias = NodeBias
-                Node.CalcOutput(Params[i])
+                Node.CalcOutput(Params[i], self.ActivationF)
             i += 1
 
-        self.OutputNode.CalcOutput(Params[-1])
+        self.OutputNode.CalcOutput(Params[-1], self.ActivationF)
         return self.OutputNode.Output
 
     def Backward(self, InputData, PlantRun):

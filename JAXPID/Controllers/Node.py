@@ -15,11 +15,22 @@ class Node:
         self.Inputs.append(Node)
         self.Weights.append(Weight)
 
-    def CalcOutput(self, Weights):
+    def CalcOutput(self, Weights, ActivationFunction):
         WeightedSum = 0
         for i in range(len(self.Inputs)):
             WeightedSum += self.Inputs[i].Output * Weights[i]
-        self.Output = self.ActivationFunction(WeightedSum)
+        if ActivationFunction == 1:
+            self.Output = self.ActivationFunctionSigmoid(WeightedSum)
+        elif ActivationFunction == 2:
+            self.Output = self.ActivationFunctionTanh(WeightedSum)
+        elif ActivationFunction == 3:
+            self.Output = self.ActivationFunctionRelu(WeightedSum)
 
-    def ActivationFunction(self, x):
+    def ActivationFunctionSigmoid(self, x):
+        return 1 / (1 + jnp.exp(-x))
+
+    def ActivationFunctionTanh(self, x):
+        return jnp.tanh(x)
+
+    def ActivationFunctionRelu(self, x):
         return jnp.maximum(0, x)
