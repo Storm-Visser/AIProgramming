@@ -119,7 +119,7 @@ class CONSYS:
         ax1.set_ylabel('Error Rate')
         ax1.legend()
         ax1.grid(True)
-        ax1.set_yscale('log')
+        # ax1.set_yscale('log')
 
         if(self.UseNN):
             ax2.plot(time_steps, self.KValues, label='output')
