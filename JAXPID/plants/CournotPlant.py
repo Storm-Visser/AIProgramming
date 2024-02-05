@@ -1,7 +1,4 @@
 from plants.Plant import Plant
-import jax
-import jax.numpy as jnp
-import numpy as np
 
 
 class CournotPlant(Plant):
@@ -20,8 +17,8 @@ class CournotPlant(Plant):
      # Take all methods from super
     def CalcNewValues(self, ControllerInput):
         # New Q values
-        NewQ1 = self.SigmoidMap(self.Q1 + ControllerInput)
-        NewQ2 = self.SigmoidMap(self.Q2 + super().GenerateNoise())
+        NewQ1 = super().SigmoidMap(self.Q1 + ControllerInput)
+        NewQ2 = super().SigmoidMap(self.Q2 + super().GenerateNoise())
         # Sum of Qs, mapped Qs to sigmoid to keep it between 0 and 1
         QSum = NewQ1 + NewQ2
         # Get the new prices
@@ -43,5 +40,4 @@ class CournotPlant(Plant):
         self.Q1 = 0.0
         self.Q2 = 0.0
 
-    def SigmoidMap(self, x):
-        return 1 / (1 + jnp.exp(-x)) 
+    

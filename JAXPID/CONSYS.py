@@ -1,6 +1,6 @@
 from plants.BathtubPlant import BathtubPlant
 from plants.CournotPlant import CournotPlant
-from plants.OtherPlant import OtherPlant
+from plants.Heater import Heater
 from controllers.Controller import Controller
 from controllers.NNController import NNController
 import matplotlib.pyplot as plt
@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 class CONSYS:
     def __init__(self, PlantNr, UseNN, NNLayers, NodesPerLayer, ActivationF, InitialValuesRange, NumberOfEpochs, TimestepsPerEpoch, LearningRate, 
-                 NoiseRange, CrossSectionTub, CrossSectionDrain, HeightOfWater, MaxPrice, ProdCost, TargetProfit,  var1, var2):
+                 NoiseRange, CrossSectionTub, CrossSectionDrain, HeightOfWater, MaxPrice, ProdCost, TargetProfit,  StartTemp, TempOutside, TargetTemp):
         #General
         self.PlantNr = PlantNr
         self.UseNN = UseNN
@@ -29,8 +29,9 @@ class CONSYS:
         self.ProdCost = ProdCost
         self.TargetProfit = TargetProfit
         #Other
-        self.var1 = var1 
-        self.var2 = var2      
+        self.StartTemp = StartTemp 
+        self.TempOutside = TempOutside     
+        self.TargetTemp = TargetTemp 
         #Results
         self.ErrorRate = []
         self.KValues = []
@@ -44,7 +45,7 @@ class CONSYS:
         elif (self.PlantNr == 2):
             self.Plant = CournotPlant(self.TimestepsPerEpoch, self.NoiseRange, self.MaxPrice, self.ProdCost, self.TargetProfit)
         elif (self.PlantNr == 3):
-            self.Plant = OtherPlant(self.TimestepsPerEpoch, self.NoiseRange, self.var1, self.var2)
+            self.Plant = Heater(self.TimestepsPerEpoch, self.NoiseRange, self.StartTemp, self.TempOutside, self.TargetTemp)
 
         # set Controller
         if self.UseNN:
@@ -84,7 +85,7 @@ class CONSYS:
         ControllerInput = 0 # updates every timestep, start at 0
         for _ in range(self.NumberOfEpochs):
             PlantErTot = 0
-            NewKValue = 0
+            NewControllerInput = 0
             for _ in range(self.TimestepsPerEpoch):
                 # get results from epoch 
                 PlantEr, PlantUpd = self.Plant.RunNN(ControllerInput)
@@ -96,14 +97,14 @@ class CONSYS:
                 self.Controller.updateInputData(self.Plant.ErrorRate, self.Plant.PrevErrorRate, self.Plant.ErrorRateSum)     
                 # use results to calc new input
                 ControllerInput = self.Controller.Analyse(self.Plant.RunNN)
-                # save the final Kvalue of the epoch
-                NewKValue = ControllerInput
+                # save the final output value of the epoch
+                NewControllerInput = ControllerInput
             
             #reset
             self.Plant.Reset()
             #save results
             self.ErrorRate.append(PlantErTot/self.TimestepsPerEpoch)
-            self.KValues.append(NewKValue)
+            self.KValues.append(NewControllerInput)
 
         self.ShowResults()
     
@@ -135,8 +136,6 @@ class CONSYS:
             array1_values = [sublist[0] for sublist in self.KValues]
             array2_values = [sublist[1] for sublist in self.KValues]
             array3_values = [sublist[2] for sublist in self.KValues]
-
-            # Kvalue decreasing makes sense due to the water decresing accoridng to the amount of water, if it is more wrong, the k value should be higher
 
             ax2.plot(time_steps, array1_values, label='K1')
             ax2.plot(time_steps, array2_values, label='K2')

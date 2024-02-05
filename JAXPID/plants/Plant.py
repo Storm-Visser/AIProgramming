@@ -1,5 +1,5 @@
-from random import seed
 from random import uniform
+import jax.numpy as jnp
 
 # Abstract
 class Plant:
@@ -31,6 +31,9 @@ class Plant:
         self.ErrorRate = errorRate
         self.AmountOfErrors += 1
         self.ErrorRateSum = (self.ErrorRateSum + errorRate)/self.AmountOfErrors
+
+    def SigmoidMap(self, x):
+        return 1 / (1 + jnp.exp(-x)) 
 
     #abstract methods
     def CalcNewValues(self, ControllerInput):
