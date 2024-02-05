@@ -30,7 +30,7 @@ class BathtubPlant(Plant):
         # Account for tub area
         NewHeightOfWater = self.HeightOfWater + NewVolume/self.CrossSectionTub
         # Get the heigth offset and calculate how much percentage of the targetheight it is, abs to force positive nombers(minimize error)
-        ErrorRate = abs(((NewHeightOfWater - self.TargetHeight) / self.TargetHeight))
+        ErrorRate = abs(NewHeightOfWater - self.TargetHeight)
         return ErrorRate, NewHeightOfWater
 
     def Update(self, UpdateErrorRate, UpdateWaterHeigt):

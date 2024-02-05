@@ -10,6 +10,7 @@ class Plant:
         self.ErrorRateSum = 0.0
         self.PrevErrorRate = 0.0
         self.ErrorRate = 0.0
+        self.AmountOfErrors = 0.0
 
 
     def Run(self, K1, K2, K3):
@@ -28,7 +29,8 @@ class Plant:
     def UpdateErrorVars(self, errorRate):
         self.PrevErrorRate = self.ErrorRate
         self.ErrorRate = errorRate
-        self.ErrorRateSum = self.ErrorRateSum + errorRate
+        self.AmountOfErrors += 1
+        self.ErrorRateSum = (self.ErrorRateSum + errorRate)/self.AmountOfErrors
 
     #abstract methods
     def CalcNewValues(self, ControllerInput):
