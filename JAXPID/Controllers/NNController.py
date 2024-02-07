@@ -48,7 +48,7 @@ class NNController(Controller):
 
         # setup the layers and the nodes
         for _ in range(self.NNLayers):
-                Layer = [n() for _ in range(self.NNLayers)]
+                Layer = [n() for _ in range(self.NodesPerLayer)]
                 self.HiddenLayers.append(Layer)
 
         # Connect input nodes to the first hidden layer
@@ -85,7 +85,7 @@ class NNController(Controller):
             for Node, NodeBias in zip(HiddenLayer, Bias):
                 Node.Bias = NodeBias
                 Node.CalcOutput(Params[i], self.ActivationF)
-            i += 1
+                i += 1
 
         self.OutputNode.CalcOutput(Params[-1], self.ActivationF)
         return self.OutputNode.Output
@@ -109,9 +109,13 @@ class NNController(Controller):
 
     def UpdateWeights(self, Gradients, LearningRate):
         # Iterate over the layers and nodes to update weights using gradients
-        for i in range(len(self.HiddenLayers)):
-            for j in range(len(self.HiddenLayers[i])):
-                self.Weights[i][j] -= LearningRate * Gradients[i][j]
+        for Layer in range(len(self.HiddenLayers)):
+            # problem with enumeration here
+            for node in range(len(self.HiddenLayers[Layer])):
+                print(Layer)
+                print(node)
+                print(Gradients[Layer][node])
+                self.Weights[Layer][node] -= LearningRate * Gradients[Layer][node]
 
         # Update the weights of the OutputNode
         for i in range(len(Gradients[-1])):

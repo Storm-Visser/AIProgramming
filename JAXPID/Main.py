@@ -1,9 +1,9 @@
 import CONSYS
 
 sytem = CONSYS.CONSYS( PlantNr = 1, #1 for Bathtubs, 2 for price, 3 for Aquarium
-        UseNN = 0,
-        NNLayers = 2, # 0 to 5 hidden layers
-        NodesPerLayer = 3,
+        UseNN = 1,
+        NNLayers = 4, # 0 to 5 hidden layers
+        NodesPerLayer = 4,
         ActivationF = 3, #1 for sigmoid, 2 for tanh, 3 for relu
         InitialValuesRange = [0.1, 0.3],
         NumberOfEpochs = 100,
