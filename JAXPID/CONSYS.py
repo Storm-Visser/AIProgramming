@@ -64,8 +64,8 @@ class CONSYS:
                 # get results from epoch 
                 PlantEr, PlantUpd = self.Plant.Run(ControllerInput[0], ControllerInput[1], ControllerInput[2])
                 # MSE
-                # PlantErTot = PlantErTot + (PlantEr**2)
-                PlantErTot = PlantErTot + PlantEr
+                PlantErTot = PlantErTot + (PlantEr**2)
+                # PlantErTot = PlantErTot + PlantEr
                 # update the plant values
                 self.Plant.Update(PlantEr, PlantUpd)                
                 # use results to calc new input
