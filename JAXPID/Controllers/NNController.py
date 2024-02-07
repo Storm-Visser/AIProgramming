@@ -109,13 +109,20 @@ class NNController(Controller):
 
     def UpdateWeights(self, Gradients, LearningRate):
         # Iterate over the layers and nodes to update weights using gradients
+        print(Gradients)
         for Layer in range(len(self.HiddenLayers)):
+            # print(self.HiddenLayers[Layer])
             # problem with enumeration here
-            for node in range(len(self.HiddenLayers[Layer])):
-                print(Layer)
-                print(node)
-                print(Gradients[Layer][node])
-                self.Weights[Layer][node] -= LearningRate * Gradients[Layer][node]
+            if Layer == 0 :
+                for node in range(len(self.InputNodes)):
+                    self.Weights[Layer][node] -= LearningRate * Gradients[Layer][node]
+            else:
+                # print(len(self.HiddenLayers[Layer]))
+                for node in range(len(self.HiddenLayers[Layer - 1])):
+                    print(node)
+                    print(Layer)
+                    print(Gradients[Layer][node])
+                    self.Weights[Layer][node] -= LearningRate * Gradients[Layer][node]
 
         # Update the weights of the OutputNode
         for i in range(len(Gradients[-1])):
