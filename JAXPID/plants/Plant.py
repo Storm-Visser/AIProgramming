@@ -1,7 +1,7 @@
 from random import uniform
 import jax.numpy as jnp
 
-# Abstract
+# "Abstract"
 class Plant:
 
     def __init__(self, TimestepsPerEpoch, NoiseRange):

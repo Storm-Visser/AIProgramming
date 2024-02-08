@@ -9,9 +9,9 @@ class Controller:
     def __init__(self, LearningRate):
         self.LearningRate = LearningRate
         self.InputValue = [0.0,0.0,0.0]
-        self.K1 = 0.0 # error rate
-        self.K2 = 0.0 # error rate prev/error rate
-        self.K3 = 0.0 # error rate sum
+        self.K1 = 0.0
+        self.K2 = 0.0
+        self.K3 = 0.0
 
     def Analyse(self, Plant):
         #get the new input for the plant

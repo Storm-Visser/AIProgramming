@@ -79,6 +79,7 @@ class NNController(Controller):
         self.Weights = [[jnp.array(Node.Weights) for Node in Layer] for Layer in self.HiddenLayers] + [jnp.array(self.OutputNode.Weights)]
         self.Biases = [[jnp.array(Node.Bias) for Node in Layer] for Layer in self.HiddenLayers] + [jnp.array([self.OutputNode.Bias])]
 
+
     def updateInputData(self, ErrorRate, PrevErrorRate, ErrorRateSum):
         self.InputValue = [ErrorRate, PrevErrorRate, ErrorRateSum]
         
@@ -96,6 +97,7 @@ class NNController(Controller):
         self.OutputNode.CalcOutput(Params[-1], self.ActivationF)
         return self.OutputNode.Output
 
+
     def Backward(self, InputData, PlantRun):
         def LossFn(Params):
             # forward pass
@@ -107,19 +109,18 @@ class NNController(Controller):
         Grads = jax.grad(LossFn)(self.GetParams())
         return LossFn(self.GetParams()), Grads
 
+
     def Loss(self, Target, Output):
         return jnp.mean((Output - Target) ** 2)
+
 
     def GetParams(self):
         return [Node.Weights for Layer in self.HiddenLayers for Node in Layer] + [self.OutputNode.Weights]
 
+
     def UpdateWeights(self, Gradients, LearningRate):
         # Iterate over the layers and nodes to update weights using gradients
-        # print(self.Weights)
-        # print(Gradients)
         for LayerNr in range(len(self.HiddenLayers)):
-            # print(self.HiddenLayers[Layer])
-            # problem with enumeration here
             if LayerNr == 0 :
                 for nodeNr in range(len(self.InputNodes)):
                     NewWeights = []
@@ -127,17 +128,11 @@ class NNController(Controller):
                         NewWeights.append(LearningRate * Gradients[LayerNr + nodeNr][WeightNr])
                     self.Weights[LayerNr][nodeNr] = NewWeights
             else:
-                # print(len(self.HiddenLayers[Layer]))
                 for nodeNr in range(len(self.HiddenLayers[LayerNr - 1])):
-                    # print(nodeNr)
-                    # print(LayerNr)
-                    # print(Gradients[LayerNr + nodeNr])
-                    # print(self.Weights[LayerNr][nodeNr])
                     NewWeights = []
                     for WeightNr in range(len(self.Weights[LayerNr - 1][nodeNr])):
                         NewWeights.append(LearningRate * Gradients[LayerNr + nodeNr][WeightNr])
                     self.Weights[LayerNr][nodeNr] = NewWeights
-
         # Update the weights of the OutputNode
         for i in range(len(Gradients[-1])):
             self.OutputNode.Weights[i]-= LearningRate * Gradients[-1][i]

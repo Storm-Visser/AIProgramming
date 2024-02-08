@@ -15,7 +15,7 @@ class Heater(Plant):
     def CalcNewValues(self, ControllerInput):
         # Get the temp influence form outside (k thermal transfer variable 0.12)
         TOutside = 0.12 * (self.Temp - self.TempOutside)
-        # Get the temp influence from heater (M = 3.6 bc Mass of air in room)
+        # Get the temp influence from heater (M = 3.6 bc Mass of air)
         THeater = ControllerInput / 3.6
         # Calc the new temp with noise
         TNew = self.Temp - TOutside + THeater + super().GenerateNoise()

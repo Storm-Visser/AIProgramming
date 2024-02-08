@@ -65,7 +65,6 @@ class CONSYS:
                 PlantEr, PlantUpd = self.Plant.Run(ControllerInput[0], ControllerInput[1], ControllerInput[2])
                 # MSE
                 PlantErTot = PlantErTot + (PlantEr**2)
-                # PlantErTot = PlantErTot + PlantEr
                 # update the plant values
                 self.Plant.Update(PlantEr, PlantUpd)                
                 # use results to calc new input
@@ -127,7 +126,7 @@ class CONSYS:
         if(self.UseNN):
             ax2.plot(time_steps, self.KValues, label='output')
             ax2.set_title('NN output values')
-            ax2.set_xlabel('Index')
+            ax2.set_xlabel('Epochs')
             ax2.set_ylabel('Values')
             ax2.legend()
         else:
@@ -142,7 +141,7 @@ class CONSYS:
             ax2.plot(time_steps, array3_values, label='K3')
 
             ax2.set_title('K Values')
-            ax2.set_xlabel('Index')
+            ax2.set_xlabel('Epochs')
             ax2.set_ylabel('Values')
             ax2.legend()
 
